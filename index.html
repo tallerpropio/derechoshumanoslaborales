@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario: Derechos Humanos y Laborales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .feedback-correct {
+            border-left: 5px solid #10b981; /* emerald-500 */
+        }
+        .feedback-incorrect {
+            border-left: 5px solid #ef4444; /* red-500 */
+        }
+        .option-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div id="container" class="w-full max-w-3xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+
+        <!-- Pantalla de Inicio -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-4">Cuestionario de Derechos Humanos y Laborales</h1>
+            <p class="text-slate-600 mb-6 text-base sm:text-lg">Promoción de Derechos y Protección Laboral</p>
+            <div class="bg-teal-50 border-l-4 border-teal-500 text-teal-800 p-4 rounded-lg text-left mb-8">
+                <p class="font-bold">¡Atención!</p>
+                <p>Este cuestionario ha sido elaborado a partir de los documentos vistos en clases. Es muy importante que lo respondas a conciencia para que puedas aprender y reforzar tus conocimientos sobre estos temas fundamentales.</p>
+            </div>
+            <button id="start-btn" class="w-full sm:w-auto bg-teal-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-teal-700 transition-all duration-300 shadow-md">
+                Comenzar Cuestionario
+            </button>
+        </div>
+
+        <!-- Pantalla del Cuestionario -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800">Pregunta <span id="question-number"></span> de 30</h2>
+                <div id="score" class="text-lg font-semibold text-teal-600">Puntaje: 0</div>
+            </div>
+            
+            <div id="progress-bar-container" class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+                <div id="progress-bar" class="bg-teal-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+
+            <p id="question-text" class="text-lg sm:text-xl text-slate-700 mb-8 min-h-[6rem]"></p>
+            
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Las opciones se generan con JS -->
+            </div>
+
+            <div id="feedback-container" class="p-4 rounded-lg min-h-[8rem] hidden text-sm sm:text-base"></div>
+
+            <div class="flex justify-end mt-8">
+                <button id="next-btn" class="bg-teal-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-teal-700 transition-all duration-300 shadow-md hidden">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Resultados -->
+        <div id="result-screen" class="hidden text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-4">¡Cuestionario Finalizado!</h1>
+            <p class="text-slate-600 mb-6 text-lg">Tu resultado final es:</p>
+            <div class="text-6xl font-bold text-teal-600 mb-8" id="final-score"></div>
+            <p id="result-message" class="text-slate-700 font-semibold text-xl mb-8"></p>
+
+            <!-- Sección para temas a repasar -->
+            <div id="topics-to-review" class="mb-8"></div>
+
+            <button id="restart-btn" class="w-full sm:w-auto bg-teal-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-teal-700 transition-all duration-300 shadow-md">
+                Intentar de Nuevo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DE PREGUNTAS ---
+        const quizData = [
+            {
+                question: "¿Cuál es la principal diferencia entre 'difusión' y 'promoción' desde el punto de vista social?",
+                options: ["La difusión usa medios masivos y la promoción no.", "La difusión solo informa, mientras que la promoción busca potenciar capacidades y cambiar actitudes.", "La promoción es más barata que la difusión.", "No hay ninguna diferencia, son sinónimos."],
+                correctAnswer: 1,
+                topic: "Conceptos Clave en Promoción de Derechos",
+                hint: "Piensa en cuál de los dos conceptos implica una acción más profunda y un cambio en las personas.",
+                explanation: "La difusión se limita a dar a conocer algo, como repartir un folleto. En cambio, la promoción social es un proceso planificado que busca potenciar las capacidades de las personas y lograr cambios de actitud para que participen activamente en la mejora de su situación."
+            },
+            {
+                question: "¿Qué significa 'sensibilización' en el contexto de la promoción de derechos?",
+                options: ["Distribuir materiales informativos.", "Generar una reflexión profunda y una disposición positiva en las personas.", "Obligar a las personas a cambiar de opinión.", "Realizar una encuesta sobre un tema."],
+                correctAnswer: 1,
+                topic: "Conceptos Clave en Promoción de Derechos",
+                hint: "La sensibilización apela a la reflexión y a la emotividad.",
+                explanation: "La sensibilización es un proceso que busca una reflexión profunda y un llamado a la emotividad para generar una disposición positiva en las personas sobre una causa, yendo más allá de solo informar."
+            },
+            {
+                question: "Al planificar una campaña de promoción, ¿qué es el 'público objetivo primario'?",
+                options: ["Las autoridades que apoyan la campaña.", "Los medios de comunicación que la cubren.", "El segmento de población al cual se dirige directamente la intervención y los mensajes.", "Todos los habitantes de la localidad."],
+                correctAnswer: 2,
+                topic: "Planificación de Campañas de Promoción",
+                hint: "Es el grupo principal al que queremos llegar con nuestro mensaje.",
+                explanation: "El público objetivo primario es el segmento de la población al cual se dirige directamente la intervención. Son las personas a quienes se les quiere generar un cambio de actitud o comportamiento."
+            },
+            {
+                question: "Según el texto, ¿cuál de las siguientes es una característica de un buen objetivo de campaña?",
+                options: ["Ser muy ambicioso y general.", "No tener un plazo definido.", "Especificar cuánto se quiere lograr, a quién se dirige y en qué tiempo.", "No considerar al público objetivo."],
+                correctAnswer: 2,
+                topic: "Planificación de Campañas de Promoción",
+                hint: "Un buen objetivo debe ser medible y realista.",
+                explanation: "Un objetivo bien elaborado debe ser específico (cuánto se quiere lograr), realista, definir el público objetivo y señalar el tiempo en el cual se pretende lograr lo planteado."
+            },
+            {
+                question: "¿Qué es la 'validación de materiales' en una campaña?",
+                options: ["El proceso de imprimir los afiches y folletos.", "Verificar si el material es atractivo y comprensible para el público objetivo antes de producirlo masivamente.", "Contar cuántas personas recibieron el material.", "El costo total de la producción de materiales."],
+                correctAnswer: 1,
+                topic: "Planificación de Campañas de Promoción",
+                hint: "Es un paso previo a la producción para asegurar que el mensaje llegue correctamente.",
+                explanation: "La validación consiste en verificar si el material preparado (folletos, afiches, etc.) es atractivo, comprensible y aceptado por el público al que se dirige, antes de invertir en su producción masiva."
+            },
+            {
+                question: "Los sociodramas y las ferias son ejemplos de qué tipo de medio de comunicación?",
+                options: ["Medios Masivos", "Medios Interpersonales", "Medios de Comunicación Local o Comunitarios", "Medios de Apoyo"],
+                correctAnswer: 2,
+                topic: "Medios de Comunicación en Campañas",
+                hint: "Este tipo de medio involucra activamente a la comunidad.",
+                explanation: "Los sociodramas, teatro callejero y ferias son considerados medios de comunicación local o comunitarios porque involucran a la comunidad, recuperan sus espacios y permiten una alta participación."
+            },
+            {
+                question: "¿Por qué se considera que los derechos laborales forman parte de los derechos humanos?",
+                options: ["Porque solo aplican a ciertos trabajadores.", "Porque están incluidos en la Declaración Universal de Derechos Humanos (DUDH).", "Porque fueron inventados por las empresas.", "Porque no son obligatorios para los Estados."],
+                correctAnswer: 1,
+                topic: "Fundamentos de los Derechos Laborales",
+                hint: "Un importante documento internacional los consagra.",
+                explanation: "Los derechos laborales, como el derecho al trabajo en condiciones equitativas, a un salario justo y a fundar sindicatos, están consagrados en los artículos 23 y 24 de la Declaración Universal de Derechos Humanos (DUDH), reconociéndolos como inherentes a la dignidad humana."
+            },
+            {
+                question: "¿Qué es la Organización Internacional del Trabajo (OIT)?",
+                options: ["Una empresa de reclutamiento de personal.", "Un sindicato mundial.", "Una agencia de la ONU para promover el trabajo digno.", "Un tribunal que juzga a los empleadores."],
+                correctAnswer: 2,
+                topic: "Organismos Internacionales y Derechos Laborales",
+                hint: "Es una agencia especializada de las Naciones Unidas fundada en 1919.",
+                explanation: "La OIT es una agencia especializada de la ONU cuya misión es promover el trabajo digno y la justicia social, estableciendo convenios internacionales sobre materias laborales."
+            },
+            {
+                question: "El Convenio 100 de la OIT, ratificado por Chile, se refiere a:",
+                options: ["La edad mínima para trabajar.", "La prohibición del trabajo forzoso.", "La libertad sindical.", "La igualdad de remuneración entre hombres y mujeres por un trabajo de igual valor."],
+                correctAnswer: 3,
+                topic: "Convenios Fundamentales de la OIT",
+                hint: "Este convenio busca eliminar la discriminación salarial por razón de sexo.",
+                explanation: "El Convenio 100 de la OIT establece el principio de igualdad de remuneración entre la mano de obra masculina y la mano de obra femenina por un trabajo de igual valor, prohibiendo la discriminación salarial basada en el sexo."
+            },
+            {
+                question: "La primera ley sobre trabajo infantil en el mundo occidental fue aprobada en 1802 en:",
+                options: ["Francia", "Alemania", "Inglaterra", "Estados Unidos"],
+                correctAnswer: 2,
+                topic: "Historia de los Derechos Laborales",
+                hint: "Fue en el país donde se inició la Revolución Industrial.",
+                explanation: "Inglaterra, al ser el primer país en industrializarse, fue también el primero en enfrentar las consecuencias del trabajo sin regulación, aprobando en 1802 el 'Acta para la salud y moral de los aprendices', considerada la primera ley sobre trabajo infantil."
+            },
+            {
+                question: "En Chile, ¿qué importante ley se promulgó en 1931, unificando la legislación laboral existente?",
+                options: ["La Ley de Descanso Dominical.", "La Ley de Accidentes de Trabajo.", "El Código del Trabajo.", "La Ley de Protección a la Maternidad."],
+                correctAnswer: 2,
+                topic: "Historia de los Derechos Laborales en Chile",
+                hint: "Esta ley compiló y organizó diversas normas laborales en un solo cuerpo legal.",
+                explanation: "En 1931 se creó el Código del Trabajo, que unificó y detalló con mayor claridad la legislación laboral existente sobre contratos, accidentes, organización sindical y derecho a huelga."
+            },
+            {
+                question: "¿Qué fue la Federación Obrera de Chile (FOCH)?",
+                options: ["Una asociación de empresarios.", "El primer partido político de Chile.", "Una organización que impulsó la sindicalización de obreros urbanos y salitreros desde 1909.", "Una mutual de ayuda para campesinos."],
+                correctAnswer: 2,
+                topic: "Historia de los Derechos Laborales en Chile",
+                hint: "Fue una de las primeras grandes organizaciones de trabajadores en el país.",
+                explanation: "Nacida en 1909, la Federación Obrera de Chile (FOCH) fue una organización clave que impulsó durante décadas la sindicalización (formación de sindicatos) de los obreros urbanos y salitreros en Chile."
+            },
+            {
+                question: "La 'garantía de indemnidad' es un derecho fundamental del trabajador que consiste en:",
+                options: ["Recibir una indemnización por cualquier motivo.", "No sufrir represalias por participar en juicios laborales.", "Tener un seguro de vida pagado por la empresa.", "El derecho a no ser despedido."],
+                correctAnswer: 1,
+                topic: "Derechos Fundamentales en el Trabajo",
+                hint: "Este derecho protege al trabajador de posibles venganzas por defender sus derechos legalmente.",
+                explanation: "La garantía de indemnidad protege al trabajador para que no sufra represalias (como despidos o malos tratos) por parte de su empleador por haber participado en un juicio laboral en su contra."
+            },
+             {
+                question: "¿Cuál de estos derechos NO está explícitamente mencionado en el Artículo 23 de la DUDH?",
+                options: ["Derecho al trabajo y a su libre elección.", "Derecho a igual salario por trabajo igual.", "Derecho a una remuneración equitativa.", "Derecho a un ascenso anual garantizado."],
+                correctAnswer: 3,
+                topic: "Fundamentos de los Derechos Laborales",
+                hint: "Revisa los 4 puntos del artículo 23. Uno de ellos no está en la lista de opciones.",
+                explanation: "El Artículo 23 de la Declaración Universal de Derechos Humanos consagra el derecho al trabajo, a la libre elección, a condiciones equitativas, a igual salario por igual trabajo, a una remuneración justa y a la sindicalización, pero no menciona un derecho a un ascenso anual."
+            },
+            {
+                question: "La ley sobre descanso dominical en Chile (Ley N° 3.321) fue promulgada en:",
+                options: ["1907", "1917", "1924", "1931"],
+                correctAnswer: 1,
+                topic: "Historia de los Derechos Laborales en Chile",
+                hint: "Fue una de las primeras leyes sociales importantes del siglo XX en Chile.",
+                explanation: "La Ley N° 3.321 sobre el descanso dominical fue una de las primeras conquistas legislativas del movimiento obrero chileno, promulgada en el año 1917."
+            },
+            {
+                question: "¿Quién fue Clotario Blest?",
+                options: ["Un empresario salitrero.", "Un presidente de Chile.", "Un relevante dirigente sindical, primer presidente de la CUT.", "El autor del primer Código del Trabajo."],
+                correctAnswer: 2,
+                topic: "Historia de los Derechos Laborales en Chile",
+                hint: "Su liderazgo fue clave en la formación de grandes asociaciones de trabajadores como la ANEF y la CUT.",
+                explanation: "Clotario Blest Riffo fue uno de los dirigentes sindicales más importantes de la historia de Chile, conocido por ser el primer presidente de la Central Única de Trabajadores (CUT) en 1959."
+            },
+            {
+                question: "El Convenio 182 de la OIT se enfoca en:",
+                options: ["La igualdad de remuneración.", "La libertad sindical.", "Las peores formas de trabajo infantil.", "El derecho a vacaciones."],
+                correctAnswer: 2,
+                topic: "Convenios Fundamentales de la OIT",
+                hint: "Este convenio busca proteger a los niños de la explotación laboral más grave.",
+                explanation: "El Convenio 182 de la OIT se centra en la prohibición y eliminación de las peores formas de trabajo infantil, como la esclavitud, la trata de niños y su uso en conflictos armados o actividades ilícitas."
+            },
+            {
+                question: "Cuando un mensaje de una campaña propone un cambio que ataca costumbres arraigadas, se recomienda que el mensaje se presente de manera:",
+                options: ["Agresiva y directa.", "Negativa y con humor negro.", "Positiva, para no generar rechazo.", "Confusa para que la gente no entienda."],
+                correctAnswer: 2,
+                topic: "Planificación de Campañas de Promoción",
+                hint: "El objetivo es persuadir, no generar resistencia en el público.",
+                explanation: "Cuando se abordan temas sensibles o costumbres arraigadas, se recomienda presentar los mensajes de manera positiva para evitar que el público se sienta atacado y genere resistencia o rechazo hacia la campaña."
+            },
+            {
+                question: "El derecho a la vida y a la integridad física del trabajador es un derecho fundamental protegido por la Constitución chilena. ¿Verdadero o Falso?",
+                options: ["Verdadero", "Falso"],
+                correctAnswer: 0,
+                topic: "Derechos Fundamentales en el Trabajo",
+                hint: "La seguridad y la salud en el trabajo son derechos básicos.",
+                explanation: "Verdadero. El derecho a la vida y a la integridad física y psíquica es un derecho fundamental de toda persona, y en el ámbito laboral, se traduce en el deber del empleador de garantizar condiciones de trabajo seguras y saludables."
+            },
+            {
+                question: "¿Cuál es una de las razones por las que es importante la promoción de derechos?",
+                options: ["Para que la gente dependa más de las autoridades.", "Para que las personas se vuelvan agentes activos de su propio cambio.", "Para aumentar los problemas en la comunidad.", "Para reducir la participación comunitaria."],
+                correctAnswer: 1,
+                topic: "Conceptos Clave en Promoción de Derechos",
+                hint: "La promoción busca empoderar a las personas.",
+                explanation: "La promoción es importante porque involucra a las familias e individuos y los vuelve agentes activos de su propio cambio, permitiéndoles asumir comportamientos de respeto y cumplimiento de sus derechos."
+            },
+            {
+                question: "Trípticos, folletos y rotafolios son ejemplos de:",
+                options: ["Medios Masivos", "Medios Interpersonales", "Medios de Apoyo", "Medios Comunitarios"],
+                correctAnswer: 2,
+                topic: "Medios de Comunicación en Campañas",
+                hint: "Estos materiales refuerzan los mensajes dados por otros medios.",
+                explanation: "Los trípticos, folletos, afiches y rotafolios son considerados medios de apoyo, ya que refuerzan, amplían y complementan los mensajes dados a través de medios masivos, interpersonales o comunitarios."
+            },
+            {
+                question: "La ley de seguro obligatorio de enfermedad e invalidez (Nº 4.054) en Chile fue una de las 'leyes sociales' aprobadas en el año:",
+                options: ["1917", "1924", "1931", "1943"],
+                correctAnswer: 1,
+                topic: "Historia de los Derechos Laborales en Chile",
+                hint: "Fue un año muy prolífico en legislación social en Chile.",
+                explanation: "La ley Nº 4.054, junto con otras leyes sociales clave como la de contrato de trabajo y accidentes de trabajo, fue aprobada en el año 1924 durante el gobierno de Arturo Alessandri Palma."
+            },
+            {
+                question: "El derecho a 'fundar sindicatos y a sindicarse' está protegido por:",
+                options: ["Solo por la ley chilena.", "Solo por la OIT.", "Tanto por la DUDH como por los convenios de la OIT.", "Únicamente por la voluntad del empleador."],
+                correctAnswer: 2,
+                topic: "Fundamentos de los Derechos Laborales",
+                hint: "Es un derecho reconocido a nivel internacional por múltiples organismos.",
+                explanation: "El derecho a la libertad de asociación y sindicalización es un derecho fundamental reconocido tanto en el Artículo 23 de la DUDH como en el Convenio 87 de la OIT, uno de sus pilares fundamentales."
+            },
+            {
+                question: "Una charla o un taller son considerados medios:",
+                options: ["Masivos", "Interpersonales", "Comunitarios", "Gráficos"],
+                correctAnswer: 1,
+                topic: "Medios de Comunicación en Campañas",
+                hint: "En estos medios hay una comunicación directa entre una persona y un grupo.",
+                explanation: "Las charlas y talleres son ejemplos de medios interpersonales, donde una persona se comunica directamente con un grupo, permitiendo una interacción más cercana y participativa."
+            },
+            {
+                question: "¿Qué es la 'inclusión laboral' según la infografía?",
+                options: ["Contratar solo a jóvenes.", "Una acción que repercute positivamente en la vida laboral y calidad de vida general.", "Una obligación solo para empresas pequeñas.", "Un sistema para reducir los salarios."],
+                correctAnswer: 1,
+                topic: "Desafíos Actuales de los Derechos Laborales",
+                hint: "La inclusión busca integrar a diversos grupos al mundo del trabajo.",
+                explanation: "La inclusión laboral es una acción concreta que busca favorecer la incorporación de diversos grupos (jóvenes, pueblos originarios, personas en situación de discapacidad, etc.) y que repercute positivamente en su vida laboral y calidad de vida."
+            },
+            {
+                question: "Según el texto, la relación entre promoción y prevención es que:",
+                options: ["Son conceptos opuestos.", "La promoción contribuye a la prevención de futuras vulneraciones de derechos.", "La prevención es más importante que la promoción.", "No tienen ninguna relación."],
+                correctAnswer: 1,
+                topic: "Conceptos Clave en Promoción de Derechos",
+                hint: "Al promover nuevas prácticas y conocimientos, se evitan problemas futuros.",
+                explanation: "La promoción y la prevención están estrechamente relacionadas. Al fomentar nuevas prácticas y conocimientos (promoción), se contribuye a evitar o reducir situaciones que vulneren los derechos de las personas (prevención)."
+            },
+            {
+                question: "El derecho al descanso y al disfrute del tiempo libre está reconocido en:",
+                options: ["El Convenio 29 de la OIT sobre trabajo forzoso.", "El Artículo 24 de la Declaración Universal de Derechos Humanos.", "Una ley exclusiva de Alemania.", "Ningún documento internacional."],
+                correctAnswer: 1,
+                topic: "Fundamentos de los Derechos Laborales",
+                hint: "La DUDH no solo habla del trabajo, sino también del descanso.",
+                explanation: "El Artículo 24 de la DUDH establece claramente que 'Toda persona tiene derecho al descanso, al disfrute del tiempo libre, a una limitación razonable de la duración del trabajo y a vacaciones periódicas pagadas'."
+            },
+            {
+                question: "La Agrupación Nacional de Empleados Fiscales (ANEF) se creó en 1943 para organizar a:",
+                options: ["Los campesinos.", "Los profesores.", "Los obreros salitreros.", "Los funcionarios públicos."],
+                correctAnswer: 3,
+                topic: "Historia de los Derechos Laborales en Chile",
+                hint: "Su nombre indica el sector de trabajadores que representa.",
+                explanation: "La ANEF se creó para agrupar a los empleados fiscales, es decir, los trabajadores del aparato estatal o funcionarios públicos."
+            },
+            {
+                question: "El Convenio 138 de la OIT establece la edad mínima para empleos de carácter peligroso en:",
+                options: ["15 años", "16 años", "18 años", "21 años"],
+                correctAnswer: 2,
+                topic: "Convenios Fundamentales de la OIT",
+                hint: "Establece una edad base que protege a los adolescentes de trabajos riesgosos.",
+                explanation: "El Convenio 138 de la OIT establece los 18 años como la edad mínima para empleos que puedan ser peligrosos, aunque permite a la legislación nacional autorizar desde los 16 si se garantiza la salud, seguridad y formación adecuada."
+            },
+            {
+                question: "El 'público objetivo secundario' en una campaña son:",
+                options: ["Las personas que no importan para la campaña.", "Agentes que pueden contribuir con el desarrollo de las acciones.", "El mismo que el público primario.", "Los opositores a la campaña."],
+                correctAnswer: 1,
+                topic: "Planificación de Campañas de Promoción",
+                hint: "Son aliados que pueden ayudar a que el mensaje llegue al público primario.",
+                explanation: "El público objetivo secundario está conformado por aquellos agentes (como autoridades, líderes locales, etc.) que pueden contribuir con el desarrollo de las acciones y ayudar a alcanzar los objetivos de la campaña."
+            }
+        ];
+
+
+        // --- ELEMENTOS DEL DOM ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const scoreEl = document.getElementById('score');
+        const finalScoreEl = document.getElementById('final-score');
+        const resultMessageEl = document.getElementById('result-message');
+        const topicsToReviewContainer = document.getElementById('topics-to-review');
+        const progressBar = document.getElementById('progress-bar');
+
+        // --- VARIABLES DE ESTADO ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questionAnsweredCorrectly = false;
+        let incorrectQuestions = [];
+
+        // --- FUNCIONES ---
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            questionAnsweredCorrectly = false;
+            incorrectQuestions = [];
+            scoreEl.textContent = 'Puntaje: 0';
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            questionAnsweredCorrectly = false;
+            feedbackContainer.classList.add('hidden');
+            feedbackContainer.innerHTML = '';
+            
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            questionNumberEl.textContent = currentQuestionIndex + 1;
+            questionTextEl.textContent = currentQuestion.question;
+            
+            optionsContainer.innerHTML = '';
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('w-full', 'p-4', 'border', 'border-gray-300', 'rounded-lg', 'text-left', 'transition-all', 'duration-200', 'option-button', 'bg-gray-50');
+                button.dataset.index = index;
+                button.addEventListener('click', selectAnswer);
+                optionsContainer.appendChild(button);
+            });
+
+            updateProgressBar();
+            nextBtn.classList.add('hidden');
+        }
+        
+        function updateProgressBar() {
+            const progressPercentage = ((currentQuestionIndex) / quizData.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+
+        function selectAnswer(e) {
+            if (questionAnsweredCorrectly) return;
+
+            const selectedButton = e.target;
+            const selectedAnswerIndex = parseInt(selectedButton.dataset.index);
+            const correctAnswerIndex = quizData[currentQuestionIndex].correctAnswer;
+
+            if (selectedAnswerIndex === correctAnswerIndex) {
+                // Si la respuesta es correcta, se suma el punto solo si no se ha sumado antes
+                if (!incorrectQuestions.some(q => q.question === quizData[currentQuestionIndex].question)) {
+                    score++;
+                }
+                questionAnsweredCorrectly = true;
+                scoreEl.textContent = `Puntaje: ${score}`;
+
+                const allOptions = optionsContainer.querySelectorAll('button');
+                allOptions.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.remove('bg-gray-50', 'option-button');
+                    btn.classList.add('bg-gray-200');
+                });
+
+                selectedButton.classList.remove('bg-gray-200');
+                selectedButton.classList.add('bg-green-500', 'text-white', 'border-green-500');
+                showFeedback(true);
+                nextBtn.classList.remove('hidden');
+
+            } else {
+                selectedButton.disabled = true;
+                selectedButton.classList.remove('bg-gray-50', 'option-button');
+                selectedButton.classList.add('bg-red-500', 'text-white', 'border-red-500');
+                
+                // Registra la pregunta como incorrecta (si es el primer intento fallido)
+                const currentQuestion = quizData[currentQuestionIndex];
+                if (!incorrectQuestions.some(q => q.question === currentQuestion.question)) {
+                    incorrectQuestions.push(currentQuestion);
+                }
+                showFeedback(false);
+            }
+        }
+
+        function showFeedback(isCorrect) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            feedbackContainer.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackContainer.classList.remove('feedback-incorrect');
+                feedbackContainer.classList.add('feedback-correct', 'bg-green-50');
+                feedbackContainer.innerHTML = `<p class="font-bold text-green-800">¡Correcto!</p><p class="text-green-700">${currentQuestion.explanation}</p>`;
+            } else {
+                feedbackContainer.classList.remove('feedback-correct');
+                feedbackContainer.classList.add('feedback-incorrect', 'bg-red-50');
+                feedbackContainer.innerHTML = `<p class="font-bold text-red-800">Incorrecto. ¡Intenta de nuevo!</p><p class="text-red-700"><strong class="font-semibold">Pista:</strong> ${currentQuestion.hint}</p>`;
+            }
+        }
+        
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            
+            // Lógica de puntaje: Se considera un punto si la pregunta no está en la lista de incorrectas.
+            const finalScore = quizData.length - incorrectQuestions.length;
+            finalScoreEl.textContent = `${finalScore} / ${quizData.length}`;
+            scoreEl.textContent = `Puntaje: ${finalScore}`;
+
+            progressBar.style.width = `100%`;
+
+            const percentage = (finalScore / quizData.length) * 100;
+            let message = '';
+            if (percentage >= 90) {
+                message = '¡Excelente trabajo! Tienes un dominio impresionante del tema.';
+            } else if (percentage >= 70) {
+                message = '¡Muy bien! Tienes un sólido conocimiento del periodo.';
+            } else if (percentage >= 50) {
+                message = '¡Buen intento! Sigue estudiando para mejorar.';
+            } else {
+                message = 'Necesitas repasar más los contenidos. ¡No te rindas!';
+            }
+            resultMessageEl.textContent = message;
+
+            // Mostrar temas para repasar
+            topicsToReviewContainer.innerHTML = '';
+            if (incorrectQuestions.length > 0) {
+                topicsToReviewContainer.innerHTML = `<h3 class="text-xl sm:text-2xl font-bold text-slate-700 mb-4 mt-8 border-t pt-6">Temas para repasar</h3>`;
+                const topicsList = document.createElement('ul');
+                topicsList.classList.add('list-disc', 'list-inside', 'text-left', 'max-w-md', 'mx-auto', 'text-slate-600', 'space-y-2');
+                
+                const topics = [...new Set(incorrectQuestions.map(q => q.topic))];
+                
+                topics.forEach(topic => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = topic;
+                    topicsList.appendChild(listItem);
+                });
+                
+                topicsToReviewContainer.appendChild(topicsList);
+                resultMessageEl.innerHTML += `<p class="mt-6 text-slate-600">Te invitamos a estudiar nuevamente los temas señalados y a realizar el cuestionario otra vez para mejorar tu puntaje. ¡Tú puedes!</p>`;
+            } else {
+                 resultMessageEl.innerHTML += `<p class="mt-6 text-slate-600">¡Felicitaciones por no tener errores! Demuestras un gran conocimiento.</p>`;
+            }
+        }
+
+        // --- EVENT LISTENERS ---
+        startBtn.addEventListener('click', startQuiz);
+        nextBtn.addEventListener('click', handleNextQuestion);
+        restartBtn.addEventListener('click', startQuiz);
+
+    </script>
+</body>
+</html>
